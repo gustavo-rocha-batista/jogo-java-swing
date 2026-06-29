@@ -17,7 +17,7 @@ public class Player {
     double dy = 0; // Current vertical velocity (0 -> vertically still)
     double gravity = .5; // How fast the player accelerates downward every frame
     double jumpStrength = -12.0; // The initial upward burst when jumping (negative moves UP)
-    boolean isGrounded = false; // Tracks if the player is standing on a surface
+    boolean isGrounded = true; // Tracks if the player is standing on a surface
     int floorY = 400; // Temporary screen coordinate for ground level
 
     Map<PlayerState, List<BufferedImage>> spriteMap;
@@ -119,6 +119,7 @@ public class Player {
             else if (this.currentState.toString().contains("LEFT"))
                 changeSprite(PlayerState.AIR_LEFT, this.currentAnimationFrame);
         }
+
         this.y += dy;
 
         if (this.y >= floorY) {
@@ -136,13 +137,28 @@ public class Player {
             this.x -= this.speed;
             changeSprite(PlayerState.WALK_LEFT, currentAnimationFrame++);
         } else {
+            // Only one position in AIR or IDLE frame lists
             this.currentAnimationFrame = 0;
-            if (this.currentState == PlayerState.WALK_RIGHT)
-                changeSprite(PlayerState.IDLE_RIGHT, this.currentAnimationFrame);
-            else if (this.currentState == PlayerState.WALK_LEFT) 
-                changeSprite(PlayerState.IDLE_LEFT, this.currentAnimationFrame);
-        }
 
+            // Check side the side the player is pointing to
+            if (this.currentState.toString().contains("RIGHT")) {
+                if (this.currentState.toString().contains("AIR")) {
+                    if (isGrounded)
+                        changeSprite(PlayerState.IDLE_RIGHT, this.currentAnimationFrame);
+                    else
+                        changeSprite(PlayerState.AIR_RIGHT, this.currentAnimationFrame);
+                } else
+                    changeSprite(PlayerState.IDLE_RIGHT, this.currentAnimationFrame);
+            } else if (this.currentState.toString().contains("LEFT")) {
+                if (this.currentState.toString().contains("AIR")) {
+                    if (isGrounded)
+                        changeSprite(PlayerState.IDLE_LEFT, this.currentAnimationFrame);
+                    else
+                        changeSprite(PlayerState.AIR_LEFT, this.currentAnimationFrame);
+                } else
+                    changeSprite(PlayerState.IDLE_LEFT, this.currentAnimationFrame);
+            }
+        }
     }
 
     public void draw(Graphics g) {
@@ -177,7 +193,8 @@ public class Player {
         return ImageIO.read(new File(filePath));
     }
 
-    // Helper method to clear out every time I want to animate something in regards to the player
+    // Helper method to clear out every time I want to animate something in regards
+    // to the player
     // inside update()
     private void changeSprite(PlayerState targetState, int index) {
         this.currentState = targetState;
